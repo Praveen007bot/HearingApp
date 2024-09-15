@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import BackgroundImage from "@/components/BackgroundImage";
@@ -16,51 +17,55 @@ const screenWidth = Dimensions.get("window").width;
 const SaveProfileScreen: React.FC = () => {
   const { leftEarTimeData, rightEarTimeData } = useLocalSearchParams();
 
-  // Parse timeData from the previous screen for both ears
+  // Safely parse timeData
   const parsedLeftEarData = Array.isArray(leftEarTimeData)
     ? leftEarTimeData
-    : JSON.parse(leftEarTimeData);
+    : JSON.parse(leftEarTimeData || '[]');
+
   const parsedRightEarData = Array.isArray(rightEarTimeData)
     ? rightEarTimeData
-    : JSON.parse(rightEarTimeData);
+    : JSON.parse(rightEarTimeData || '[]');
 
   const [profileName, setProfileName] = useState("");
   const [age, setAge] = useState("");
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const router = useRouter();
 
-  // Function to analyze hearing data for both ears
   const analyzeHearing = (earData: number[]) => {
-    const threshold = 5; // Threshold for reaction time (in seconds)
-    const hearingImpaired = earData.some((time: number) => time > threshold);
-    return hearingImpaired ? "Deaf or Hearing Impaired" : "Normal Hearing";
+    const threshold = 5;
+    return earData.some((time) => time > threshold)
+      ? "Deaf or Hearing Impaired"
+      : "Normal Hearing";
   };
 
-  const leftEarDiagnosis = analyzeHearing(parsedLeftEarData); // Analyze left ear
-  const rightEarDiagnosis = analyzeHearing(parsedRightEarData); // Analyze right ear
+  const leftEarDiagnosis = analyzeHearing(parsedLeftEarData);
+  const rightEarDiagnosis = analyzeHearing(parsedRightEarData);
 
   const handleSave = () => {
     if (!profileName || !age || !selectedIcon) {
-      alert("Please complete all fields.");
+      Alert.alert("Validation Error", "Please complete all fields.");
       return;
     }
-    console.log({ profileName, age, selectedIcon });
-    router.push({
-      pathname: "/GraphsScreen",
-      params: {
-        leftEarTimeData: JSON.stringify(leftEarTimeData),
-        rightEarTimeData: JSON.stringify(rightEarTimeData),
-      },
-    });
+
+    try {
+      router.push({
+        pathname: "/GraphsScreen",
+        params: {
+          leftEarTimeData: JSON.stringify(parsedLeftEarData),
+          rightEarTimeData: JSON.stringify(parsedRightEarData),
+        },
+      });
+    } catch (error) {
+      console.error("Navigation error:", error);
+      Alert.alert("Error", "An error occurred while saving the profile. Please try again.");
+    }
   };
 
   return (
     <BackgroundImage>
       <View style={styles.container}>
         <Text style={styles.header}>Saving the Profile</Text>
-
         <Text style={styles.subheader}>Choose an appropriate icon</Text>
-
         <View style={styles.iconRow}>
           <TouchableOpacity
             style={[
@@ -115,14 +120,12 @@ const SaveProfileScreen: React.FC = () => {
             />
           </TouchableOpacity>
         </View>
-
         <TextInput
           style={styles.input}
           placeholder="Enter the name of the profile"
           value={profileName}
           onChangeText={setProfileName}
         />
-
         <TextInput
           style={styles.input}
           placeholder="Enter the age"
@@ -130,16 +133,11 @@ const SaveProfileScreen: React.FC = () => {
           onChangeText={setAge}
           keyboardType="numeric"
         />
-
         <View style={styles.actions}>
           <TouchableOpacity onPress={handleSave}>
-            <Text className="bg-white px-4 py-2 text-lg text-purple-600 font-bold rounded-md">
-              Save
-            </Text>
+            <Text style={styles.saveButton}>Save</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Display diagnosis for both ears */}
         <Text style={styles.diagnosis}>Left Ear Diagnosis: {leftEarDiagnosis}</Text>
         <Text style={styles.diagnosis}>Right Ear Diagnosis: {rightEarDiagnosis}</Text>
       </View>
@@ -192,6 +190,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 20,
+  },
+  saveButton: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: "#A569BD",
+    fontWeight: "bold",
+    borderRadius: 5,
   },
   diagnosis: {
     fontSize: 18,
