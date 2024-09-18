@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { useRouter } from "expo-router"; // Import useRouter
 import BackgroundImage from "@/components/BackgroundImage"; // Assuming you have a background image component
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const ProfileScreen: React.FC = () => {
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -11,12 +20,18 @@ const ProfileScreen: React.FC = () => {
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
+  const router = useRouter(); // Initialize router
 
   useEffect(() => {
     const fetchProfiles = async () => {
       if (user) {
         const userId = user.uid;
-        const profilesCollection = collection(firestore, "users", userId, "profiles"); // Firestore path to subcollection
+        const profilesCollection = collection(
+          firestore,
+          "users",
+          userId,
+          "profiles"
+        ); // Firestore path to subcollection
         try {
           const querySnapshot = await getDocs(profilesCollection);
           const profilesList: any[] = [];
@@ -55,23 +70,36 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <BackgroundImage>
-      <View style={styles.container}>
+      <View className="mt-4">
         <Text style={styles.header}>Your Saved Profiles</Text>
         <FlatList
           data={profiles}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.profileItem}>
-              <Text style={styles.profileName}>{item.profileName}</Text>
-              <Text style={styles.profileDetails}>Age: {item.age}</Text>
-              <Text style={styles.profileDetails}>
-                Left Ear Diagnosis: {item.leftEarDiagnosis}
-              </Text>
-              <Text style={styles.profileDetails}>
-                Right Ear Diagnosis: {item.rightEarDiagnosis}
-              </Text>
-              {/* Add any other details you want to display here */}
-            </View>
+            <TouchableOpacity
+              className="flex"
+              onPress={() =>
+                router.push({
+                  pathname: "/ProfileDetailScreen", // Navigate to ProfileDetailScreen
+                  params: {
+                    profileData: JSON.stringify(item), // Pass profile data as string
+                  },
+                })
+              }
+            >
+              <View className="flex flex-row items-center gap-4 ml-2">
+                <View style={[styles.iconWrapper]}>
+                  <FontAwesome name="user" size={24} color="purple" />
+                </View>
+                <View>
+                  <Text style={styles.profileName}>{item.profileName}</Text>
+                  <Text style={styles.profileDetails}>Age: {item.age}</Text>
+                </View>
+              </View>
+              <View className="flex items-center">
+                <View className="my-2" style={styles.divider} />
+              </View>
+            </TouchableOpacity>
           )}
         />
       </View>
@@ -91,19 +119,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-  profileItem: {
-    backgroundColor: "#A569BD",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
   profileName: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
   },
   profileDetails: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#fff",
   },
   centered: {
@@ -114,6 +136,19 @@ const styles = StyleSheet.create({
   noProfilesText: {
     fontSize: 18,
     color: "#fff",
+  },
+  divider: {
+    height: 2,
+    width: "90%",
+    backgroundColor: "white",
+  },
+  iconWrapper: {
+    width: 45,
+    height: 45,
+    borderRadius: 30,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

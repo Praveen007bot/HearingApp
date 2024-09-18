@@ -1,20 +1,15 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { LineChart } from "react-native-chart-kit";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { Colors } from "@/constants/Colors";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import BackgroundImage from "@/components/BackgroundImage";
+import { LineChart } from "react-native-chart-kit";
+// You would import your graph component here
 
-const GraphsScreen: React.FC = () => {
-  const router = useRouter();
-  const {
-    leftEarTimeData,
-    rightEarTimeData,
-    leftEarDiagnosis,
-    rightEarDiagnosis,
-  } = useLocalSearchParams();
+const ProfileDetailScreen: React.FC = () => {
+  const { profileData } = useLocalSearchParams();
+  const profileDataString = Array.isArray(profileData) ? profileData[0] : profileData;
+  const profile = profileData ? JSON.parse(profileDataString) : {};
 
-  // Parse timeData safely
   const parseEarData = (earData: any) => {
     if (!earData) return [];
     try {
@@ -26,15 +21,22 @@ const GraphsScreen: React.FC = () => {
     }
   };
 
-  const parsedLeftEarData = parseEarData(leftEarTimeData);
-  const parsedRightEarData = parseEarData(rightEarTimeData);
+  const parsedLeftEarData = parseEarData(profile.leftEarTimeData);
+  const parsedRightEarData = parseEarData(profile.rightEarTimeData);
 
+ 
+  
+  
   return (
     <BackgroundImage>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
+        <Text className="text-white font-bold text-2xl">Profile Details:</Text>
+        <Text className="text-white text-lg">Name: {profile.profileName}</Text>
+        <Text className="text-white text-lg">Age: {profile.age}</Text>
+        <View >
         <View className="flex flex-row items-center justify-between">
           <Text style={styles.chartTitle}>Left Ear Data</Text>
-          <Text className="text-base font-bold">{leftEarDiagnosis}</Text>
+          <Text className="text-base font-bold">{profile.leftEarDiagnosis}</Text>
         </View>
         <LineChart
           data={{
@@ -64,7 +66,7 @@ const GraphsScreen: React.FC = () => {
         />
         <View className="flex flex-row items-center justify-between">
           <Text style={styles.chartTitle}>Right Ear Data</Text>
-          <Text className="text-base font-bold">{rightEarDiagnosis}</Text>
+          <Text className="text-base font-bold">{profile.rightEarDiagnosis}</Text>
         </View>
         <LineChart
           data={{
@@ -92,14 +94,8 @@ const GraphsScreen: React.FC = () => {
           }}
           style={styles.chart}
         />
-        <View className="flex items-center">
-          <TouchableOpacity onPress={() => router.replace("/hearing")}>
-            <Text className="px-4 py-2 bg-purple-700 rounded-lg text-white text-lg font-bold mt-4">
-              Done
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
+      </ScrollView>
     </BackgroundImage>
   );
 };
@@ -108,7 +104,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "transparent",
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  detail: {
+    fontSize: 18,
+    color: "#fff",
+    marginBottom: 10,
   },
   chartTitle: {
     fontSize: 16,
@@ -121,4 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GraphsScreen;
+export default ProfileDetailScreen;
