@@ -11,6 +11,8 @@ import {
 import { FontAwesome5 } from "@expo/vector-icons";
 import BackgroundImage from "@/components/BackgroundImage";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, addDoc } from "firebase/firestore"; // Correct imports
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -20,16 +22,18 @@ const SaveProfileScreen: React.FC = () => {
   // Safely parse timeData
   const parsedLeftEarData = Array.isArray(leftEarTimeData)
     ? leftEarTimeData
-    : JSON.parse(leftEarTimeData || '[]');
+    : JSON.parse(leftEarTimeData || "[]");
 
   const parsedRightEarData = Array.isArray(rightEarTimeData)
     ? rightEarTimeData
-    : JSON.parse(rightEarTimeData || '[]');
+    : JSON.parse(rightEarTimeData || "[]");
 
-  const [profileName, setProfileName] = useState("");
+  const [profileName, setProfileName] = useState('');
   const [age, setAge] = useState("");
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const router = useRouter();
+  
+  const firestore = getFirestore(); // Firestore instance
 
   const analyzeHearing = (earData: number[]) => {
     const threshold = 5;
@@ -41,23 +45,56 @@ const SaveProfileScreen: React.FC = () => {
   const leftEarDiagnosis = analyzeHearing(parsedLeftEarData);
   const rightEarDiagnosis = analyzeHearing(parsedRightEarData);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!profileName || !age || !selectedIcon) {
       Alert.alert("Validation Error", "Please complete all fields.");
       return;
     }
 
+    const auth = getAuth();
+    const user = auth.currentUser; // Get the currently logged-in user
+
+    if (!user) {
+      Alert.alert("Error", "User is not authenticated.");
+      return;
+    }
+
+    const userId = user.uid; // Use the user's unique ID
+
+    const profile = {
+      profileName,
+      age,
+      selectedIcon,
+      leftEarDiagnosis,
+      rightEarDiagnosis,
+      leftEarTimeData: parsedLeftEarData,
+      rightEarTimeData: parsedRightEarData,
+    };
+
+    console.log(profile);
+
+    // Save to Firestore in a subcollection called 'profiles' under the user document
     try {
+      const profilesCollection = collection(firestore, "users", userId, "profiles");
+      await addDoc(profilesCollection, profile); // Add profile to the subcollection
+      console.log("Profile saved successfully!");
+
+      // After saving to Firebase, navigate to the next screen
       router.push({
         pathname: "/GraphsScreen",
         params: {
           leftEarTimeData: JSON.stringify(parsedLeftEarData),
           rightEarTimeData: JSON.stringify(parsedRightEarData),
+          leftEarDiagnosis,
+          rightEarDiagnosis,
         },
       });
     } catch (error) {
-      console.error("Navigation error:", error);
-      Alert.alert("Error", "An error occurred while saving the profile. Please try again.");
+      console.error("Error saving profile to Firebase:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while saving the profile. Please try again."
+      );
     }
   };
 
@@ -138,8 +175,12 @@ const SaveProfileScreen: React.FC = () => {
             <Text style={styles.saveButton}>Save</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.diagnosis}>Left Ear Diagnosis: {leftEarDiagnosis}</Text>
-        <Text style={styles.diagnosis}>Right Ear Diagnosis: {rightEarDiagnosis}</Text>
+        <Text style={styles.diagnosis}>
+          Left Ear Diagnosis: {leftEarDiagnosis}
+        </Text>
+        <Text style={styles.diagnosis}>
+          Right Ear Diagnosis: {rightEarDiagnosis}
+        </Text>
       </View>
     </BackgroundImage>
   );

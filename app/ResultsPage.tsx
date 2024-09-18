@@ -16,7 +16,7 @@ import { LineChart } from "react-native-chart-kit";
 const screenWidth = Dimensions.get("window").width;
 
 const ResultsPage: React.FC = () => {
-  const { leftEarTimeData, rightEarTimeData } = useLocalSearchParams();
+  const { leftEarTimeData, rightEarTimeData, leftEarDiagnosis, rightEarDiagnosis } = useLocalSearchParams();
 
   // Safely parse the time data from the previous screen
   const parsedLeftEarData = Array.isArray(leftEarTimeData)

@@ -6,7 +6,12 @@ import { Colors } from "@/constants/Colors";
 import BackgroundImage from "@/components/BackgroundImage";
 
 const GraphsScreen: React.FC = () => {
-  const { leftEarTimeData, rightEarTimeData } = useLocalSearchParams();
+  const {
+    leftEarTimeData,
+    rightEarTimeData,
+    leftEarDiagnosis,
+    rightEarDiagnosis,
+  } = useLocalSearchParams();
 
   // Parse timeData safely
   const parseEarData = (earData: any) => {
@@ -26,7 +31,10 @@ const GraphsScreen: React.FC = () => {
   return (
     <BackgroundImage>
       <View style={styles.container}>
-        <Text style={styles.chartTitle}>Left Ear Data</Text>
+        <View className="flex flex-row items-center justify-between">
+          <Text style={styles.chartTitle}>Left Ear Data</Text>
+          <Text className="text-base font-bold">{leftEarDiagnosis}</Text>
+        </View>
         <LineChart
           data={{
             labels: parsedLeftEarData.map((_, index) => index.toString()),
@@ -53,8 +61,10 @@ const GraphsScreen: React.FC = () => {
           }}
           style={styles.chart}
         />
-
-        <Text style={styles.chartTitle}>Right Ear Data</Text>
+        <View className="flex flex-row items-center justify-between">
+          <Text style={styles.chartTitle}>Right Ear Data</Text>
+          <Text className="text-base font-bold">{rightEarDiagnosis}</Text>
+        </View>
         <LineChart
           data={{
             labels: parsedRightEarData.map((_, index) => index.toString()),
