@@ -10,6 +10,7 @@ import { Audio } from "expo-av";
 import { ProgressBar } from "react-native-paper";
 import { SVGComponent } from "@/components/SVGComponent";
 import BackgroundImage from "@/components/BackgroundImage";
+import { useRouter } from "expo-router";
 
 const soundFiles: { [key: number]: any } = {
   1: require("../assets/sounds/tone_1Hz.mp3"),
@@ -29,6 +30,11 @@ const Testing: React.FC = () => {
   const [level, setLevel] = useState<number>(1);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [testingCompleted, setTestingCompleted] = useState<boolean>(false);
+  const [levelStartTime, setLevelStartTime] = useState<number>(Date.now());
+  const [leftEarTimeData, setLeftEarTimeData] = useState<number[]>([]);
+  const [rightEarTimeData, setRightEarTimeData] = useState<number[]>([]);
+
+  const router = useRouter();
 
   // Function to play sound
   const playSound = async (level: number): Promise<void> => {
@@ -39,40 +45,56 @@ const Testing: React.FC = () => {
       return;
     }
 
-    // Unload previous sound if any
     if (sound) {
       await sound.unloadAsync();
     }
 
-    // Load new sound
     const { sound: newSound } = await Audio.Sound.createAsync(soundFile);
     setSound(newSound);
-
-    // Play sound
     await newSound.playAsync();
   };
 
   const handleNext = async (): Promise<void> => {
+    const endTime = Date.now();
+    const timeTaken = (endTime - levelStartTime) / 1000;
+
+    if (currentEar === "left") {
+      setLeftEarTimeData([...leftEarTimeData, timeTaken]);
+    } else {
+      setRightEarTimeData([...rightEarTimeData, timeTaken]);
+    }
+
+    setLevelStartTime(endTime);
+
     if (level < MAX_LEVEL) {
       const nextLevel = level + 1;
       setLevel(nextLevel);
       await playSound(nextLevel);
     } else {
       if (currentEar === "left") {
-        // Left ear testing completed, switch to right ear
         setCurrentEar("right");
         setLevel(1);
         Alert.alert("Left ear testing completed. Proceeding to right ear.");
         await playSound(1);
       } else {
-        // Both ears tested
         setTestingCompleted(true);
         Alert.alert("Testing completed for both ears!");
+
+        if (sound) {
+          await sound.unloadAsync();
+        }
+
+        router.push({
+          pathname: "/SaveProfileScreen",
+          params: {
+            leftEarTimeData: JSON.stringify(leftEarTimeData),
+            rightEarTimeData: JSON.stringify(rightEarTimeData),
+          },
+        });
       }
     }
   };
 
-  // Unload sound on component unmount
   useEffect(() => {
     return () => {
       if (sound) {
@@ -80,18 +102,6 @@ const Testing: React.FC = () => {
       }
     };
   }, [sound]);
-
-  if (testingCompleted) {
-    return (
-      <View>
-        <Text style={styles.title}>Hearing Test Completed</Text>
-        <Text style={styles.message}>
-          Thank you for completing the hearing test.
-        </Text>
-        {/* Additional summary or navigation can be added here */}
-      </View>
-    );
-  }
 
   return (
     <BackgroundImage>
@@ -111,7 +121,7 @@ const Testing: React.FC = () => {
             progress={level / MAX_LEVEL}
             style={styles.progressBar}
           />
-          <View  className="flex items-center">
+          <View className="flex items-center">
             <TouchableNativeFeedback onPress={handleNext}>
               <Text className="bg-white text-purple-600 text-lg w-24 px-4 py-2 text-center rounded-full">
                 Next
