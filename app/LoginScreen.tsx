@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Image } from "react-native";
 import { auth } from "@/firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "expo-router";
@@ -25,17 +25,22 @@ const LoginScreen: React.FC = () => {
   return (
     <BackgroundImage>
       <View style={styles.container}>
-        <Text className="text-white text-3xl" style={styles.title}>Login</Text>
+        <View className="flex items-center">
+          <Image className=" h-[300px]" source={require("./../assets/images/logo.png")}></Image>
+        </View>
+        <Text className="text-white text-3xl" style={styles.title}>
+          Login
+        </Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <TextInput
-        className="text-white placeholder:text-white "
+          className="text-white placeholder:text-white "
           placeholder="Email"
           style={styles.input}
           value={email}
           onChangeText={setEmail}
         />
         <TextInput
-        className="text-white"
+          className="text-white"
           placeholder="Password"
           style={styles.input}
           secureTextEntry

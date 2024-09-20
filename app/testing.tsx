@@ -103,17 +103,6 @@ const Testing: React.FC = () => {
     };
   }, [sound]);
 
-  if (testingCompleted) {
-    return (
-      <View>
-        <Text style={styles.title}>Hearing Test Completed</Text>
-        <Text style={styles.message}>
-          Thank you for completing the hearing test.
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <BackgroundImage>
       <View className="my-auto">

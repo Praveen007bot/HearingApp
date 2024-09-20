@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Image } from "react-native";
 import { auth } from "@/firebase/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "expo-router";
@@ -25,6 +25,9 @@ const SignUpScreen: React.FC = () => {
   return (
     <BackgroundImage>
       <View className="text-3xl text-white" style={styles.container}>
+      <View className="flex items-center">
+          <Image className=" h-[300px]" source={require("./../assets/images/logo.png")}></Image>
+        </View>
         <Text className="text-3xl text-white" style={styles.title}>Sign Up</Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <TextInput
