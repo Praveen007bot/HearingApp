@@ -36,6 +36,29 @@ const Testing: React.FC = () => {
 
   const router = useRouter();
 
+  useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          playsInSilentModeIOS: true, // Allows sound to play in silent mode on iOS
+        });
+        console.log('Audio mode set successfully');
+      } catch (error) {
+        console.error('Error setting audio mode:', error);
+      }
+    };
+
+    setupAudio();
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
+
   // Function to play sound
   const playSound = async (level: number): Promise<void> => {
     const soundFile = soundFiles[level];
@@ -94,14 +117,6 @@ const Testing: React.FC = () => {
       }
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
 
   return (
     <BackgroundImage>
