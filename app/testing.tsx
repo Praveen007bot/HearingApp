@@ -44,7 +44,6 @@ const Testing: React.FC = () => {
           staysActiveInBackground: true,
           playsInSilentModeIOS: true, // Allows sound to play in silent mode on iOS
         });
-        console.log('Audio mode set successfully');
       } catch (error) {
         console.error('Error setting audio mode:', error);
       }
@@ -136,10 +135,15 @@ const Testing: React.FC = () => {
             progress={level / MAX_LEVEL}
             style={styles.progressBar}
           />
-          <View className="flex items-center">
+          <View className="flex flex-row justify-center items-center">
             <TouchableNativeFeedback onPress={handleNext}>
               <Text className="bg-white text-purple-600 text-lg w-24 px-4 py-2 text-center rounded-full">
                 Next
+              </Text>
+            </TouchableNativeFeedback>
+            <TouchableNativeFeedback onPress={handleNext}>
+              <Text className="bg-red-400 text-white text-lg w-fit px-4 py-2 ml-5 text-center rounded-full">
+                Not heard
               </Text>
             </TouchableNativeFeedback>
           </View>
